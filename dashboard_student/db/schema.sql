@@ -1,55 +1,70 @@
---cacade para eliminacion 
-DROP TABLE IF EXISTS tabla_relacion CASCADE;
-DROP TABLE IF EXISTS tabla_hija CASCADE;
-DROP TABLE IF EXISTS tabla_padre CASCADE;
+-- db/schema.sql
 
+DROP TABLE IF EXISTS attendance CASCADE;
+DROP TABLE IF EXISTS grades CASCADE;
+DROP TABLE IF EXISTS enrollments CASCADE;
+DROP TABLE IF EXISTS groups CASCADE;
+DROP TABLE IF EXISTS courses CASCADE;
+DROP TABLE IF EXISTS teachers CASCADE;
+DROP TABLE IF EXISTS students CASCADE;
 
--- tabla student 
-CREATE TABLE students(
+-- 1. Alumnos
+CREATE TABLE students (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL UNIQUE,
+    name VARCHAR(100) NOT NULL, 
     email VARCHAR(255) NOT NULL UNIQUE,
-    program VARCHAR(255) NOT NULL UNIQUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    program VARCHAR(100) NOT NULL, 
+    enrollment_year INTEGER NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 2. Profesores
+CREATE TABLE teachers (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE
+);
+
+-- 3. Cursos (Materias)
+CREATE TABLE courses (
+    id SERIAL PRIMARY KEY,
+    code VARCHAR(20) NOT NULL UNIQUE, 
+    name VARCHAR(100) NOT NULL,
+    credits INTEGER NOT NULL CHECK (credits > 0)
+);
+
+
+CREATE TABLE groups (
+    id SERIAL PRIMARY KEY,
+    course_id INTEGER NOT NULL REFERENCES courses(id),
+    teacher_id INTEGER NOT NULL REFERENCES teachers(id),
+    term VARCHAR(20) NOT NULL, -- Ejemplo: "2026-1"
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 5. Inscripciones (La tabla de unión)
+-- Qué alumno está en qué grupo
+CREATE TABLE enrollments (
+    id SERIAL PRIMARY KEY,
+    student_id INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+    group_id INTEGER NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+    enrolled_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+);
+
+-- 6. Calificaciones (Hijas de la inscripción)
+CREATE TABLE grades (
+    id SERIAL PRIMARY KEY,
+    enrollment_id INTEGER NOT NULL REFERENCES enrollments(id) ON DELETE CASCADE,
+    partial1 DECIMAL(4,2) CHECK (partial1 >= 0 AND partial1 <= 10),
+    partial2 DECIMAL(4,2) CHECK (partial2 >= 0 AND partial2 <= 10),
+    final DECIMAL(4,2) CHECK (final >= 0 AND final <= 10),
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE teacher(
+-- 7. Asistencia (Hijas de la inscripción)
+CREATE TABLE attendance (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL UNIQUE,
-    email VARCHAR(255) NOT NULL UNIQUE,
-);
-
-CREATE TABLE courses(
-    id SERIAL PRIMARY KEY,
-    code VARCHAR(225) NOT NULL UNIQUE,
-    name VARCHAR(100) NOT NULL UNIQUE,
-    credit DECIMAL(10, 2) NOT NULL CHECK (credit >= 0),
-);
-
-CREATE TABLE grupos(
-    id SERIAL PRIMARY KEY,
-    term VARCHAR(12) NOT NULL,
-    courses_id INTEGER NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
-    teacher_id INTEGER NOT NULL REFERENCES teacher(id) ON DELETE CASCADE, 
-
-    UNIQUE (courses_id, teacher_id)
-);
-
--- tengo dudas en esta 
-CREATE TABLE enrollments(
-    id SERIAL PRIMARY KEY,
-    students_id INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
-    grupos_id INTEGER NOT NULL REFERENCES grupos(id) ON DELETE RESTRICT,
-);
-
-CREATE TABLE grades(
-    id SERIAL key,
-    enrollments_id INTEGER NOT NULL REFERENCES enrollments(id) ON DELETE RESTRICT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE attendance(
-    
+    enrollment_id INTEGER NOT NULL REFERENCES enrollments(id) ON DELETE CASCADE,
+    date DATE NOT NULL,
+    present BOOLEAN NOT NULL DEFAULT FALSE 
 );
