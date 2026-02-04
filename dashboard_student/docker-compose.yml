@@ -1,0 +1,34 @@
+version : '3.8'
+services:
+  postgres_db:
+    image: postgres:16-alpine
+    container_name: container_app
+    restart: unless-stopped
+    environment:
+     POSTGRES_USER: ${POSTGRES_USER_ADMIN}
+     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_ADMIN}
+     POSTGRES_DB: ${POSTGRES_DB_NAME}
+    ports:
+      - "5434:5435"  # Puerto local accesible
+    volumes:
+      - ./db:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER_ADMIN} -d ${POSTGRES_DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  nextjs:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nextjs_container
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    depends_on:
+      - postgres_db
+volumes:
+  postgres_data:
