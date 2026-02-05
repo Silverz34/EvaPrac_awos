@@ -1,6 +1,5 @@
--- db/schema.sql
 
--- Limpieza inicial (Orden correcto para evitar errores de dependencias)
+
 DROP TABLE IF EXISTS attendance CASCADE;
 DROP TABLE IF EXISTS grades CASCADE;
 DROP TABLE IF EXISTS enrollments CASCADE;
