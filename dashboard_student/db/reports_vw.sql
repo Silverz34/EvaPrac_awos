@@ -105,7 +105,7 @@ SELECT * FROM vw_students_at_risk ORDER BY nombre_alumno;
 
 ---------------------------------------------------------------------------------------------------------------------------------
 /*
-VIEW 4: vw_students_by_group 
+VIEW 4:vw_attendance_by_group
 REPORTE 4: asistencia promedio por grupo 
 Qué devuelve: lista de grupos con su asistencia promedio
 Grain (una fila representa): un grupo 
@@ -135,4 +135,34 @@ GROUP BY g.id, c.name, g.term, t.name;
 -- VERIFY:
 SELECT * FROM vw_attendance_by_group;
 
+-----------------------------------------------------------------------------------------------------------
+/*
+VIEW 5: vw_rank_students 
+REPORTE 5: cuadro de honor  
+Qué devuelve: ranking de estudiantes con mejor desempeño
+Grain (una fila representa): un estudiante
+Métrica(s): promedio final ROUND(AVG(gr.final),2).
+Por qué GROUP BY / HAVING / subconsulta: RANK para asignar posiciones, dependiendo el promedio final. 
+ORDER BY para ordenar el ranking de mayor a menor desempeño.
+*/
 
+CREATE VIEW vw_rank_students AS
+SELECT 
+    s.id AS id,
+    s.name AS nombre_alumno,
+    s.program licenciatura,
+    g.term AS periodo,
+    ROUND(AVG(gr.final), 2) AS promedio_final,
+    RANK() OVER (
+        PARTITION BY s.program, g.term 
+        ORDER BY AVG(gr.final) DESC
+    ) AS ranking 
+FROM students s
+JOIN enrollments e ON s.id = e.student_id
+JOIN groups g ON e.group_id = g.id
+JOIN grades gr ON e.id = gr.enrollment_id
+GROUP BY s.id, s.name, s.program, g.term
+ORDER BY s.program, ranking;
+
+-- VERIFY:
+SELECT * FROM vw_rank_students WHERE ranking <= 3;
