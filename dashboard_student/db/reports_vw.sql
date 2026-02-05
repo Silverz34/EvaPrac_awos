@@ -100,3 +100,39 @@ SELECT
 FROM estudiante_status
 WHERE promedio_general < 6.0 OR asistencia< 75;
 
+-- VERIFY:
+SELECT * FROM vw_students_at_risk ORDER BY nombre_alumno;
+
+---------------------------------------------------------------------------------------------------------------------------------
+/*
+VIEW 4: vw_students_by_group 
+REPORTE 4: asistencia promedio por grupo 
+Qué devuelve: lista de grupos con su asistencia promedio
+Grain (una fila representa): un grupo 
+Métrica(s): registro de asistencia (AVG(CASE WHEN )), sesiones totales COUNT(DISTINCT a.date)
+Por qué GROUP BY / HAVING / subconsulta: COALESCE para manejar casos sin registros de asistencia. 
+GROUP BY para agrupar las columnas.
+*/
+
+CREATE VIEW vw_attendance_by_group AS
+SELECT 
+    g.id AS id,
+    c.name AS nombre_curso,
+    g.term AS periodo,
+    t.name AS maestro_nombre,
+    COALESCE(
+        ROUND(AVG(CASE WHEN a.present THEN 1.0 ELSE 0.0 END) * 100, 2), 
+        0
+    ) AS asistencia_promedio,
+    COUNT(DISTINCT a.date) AS sesiones_totales
+FROM groups g
+JOIN courses c ON g.course_id = c.id
+JOIN teachers t ON g.teacher_id = t.id
+JOIN enrollments e ON g.id = e.group_id
+LEFT JOIN attendance a ON e.id = a.enrollment_id
+GROUP BY g.id, c.name, g.term, t.name;
+
+-- VERIFY:
+SELECT * FROM vw_attendance_by_group;
+
+
