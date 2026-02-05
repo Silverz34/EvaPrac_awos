@@ -27,3 +27,30 @@ HAVING COUNT(e.id) > 0;
 
 -- VERIFY: 
 SELECT * FROM vw_course_performance ORDER BY materia, periodo;
+
+---------------------------------------------------------------------------------------------------------------------------------
+/*
+VIEW 2: vw_teacher_load
+REPORTE 2: Carga de trabajo por profesor 
+Qué devuelve: lista de maestros con su carga de alumnos y desempeño de sus alumnos.
+Grain (una fila representa): un maestro
+Métrica(s): cantidad de grupos COUNT(DISTINCT g.id), cantidad alumnos COUNT(e.id), 
+desempeño promedio de alumnos ROUND(AVG(gr.final),2)
+Por qué GROUP BY / HAVING / subconsulta: HAVING para filtrar  que
+tuvieron al menos 1 alumno COUNT(e.id) > 0
+*/
+-- VIEW
+CREATE VIEW vw_teacher_load AS
+SELECT 
+    t.name AS nombre
+    g.term AS periodo
+    COUNT(DISTINCT g.id) AS total_grupos,
+    COUNT(e.id) AS total_estudiantes,
+    COALESCE(ROUND(AVG(gr.final), 2), 0) AS desempeño_promedio
+FROM teachers t
+JOIN groups g ON t.id = g.teacher_id
+LEFT JOIN enrollments e ON g.id = e.group_id
+LEFT JOIN grades gr ON e.id = gr.enrollment_id
+GROUP BY t.id, t.name, g.term
+HAVING COUNT(e.id) > 0;
+

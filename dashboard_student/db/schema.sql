@@ -51,8 +51,8 @@ CREATE TABLE enrollments (
     id SERIAL PRIMARY KEY,
     student_id INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
     group_id INTEGER NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
-    enrolled_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Requerido por PDF [cite: 13]
-    UNIQUE(student_id, group_id) -- Evita duplicados lógicos
+    enrolled_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
+    UNIQUE(student_id, group_id) 
 );
 
 -- 6. Calificaciones
