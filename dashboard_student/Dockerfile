@@ -5,7 +5,6 @@ FROM node:20-alpine
 WORKDIR /app
 
 # 3. Copiar dependencias: Pasamos solo el package.json primero
-# esto se debe de adaptar por su peso. !!!!!!!!!!!!!!!!!
 COPY package*.json ./ 
 
 # 4. Instalar: Descargamos las librerías necesarias

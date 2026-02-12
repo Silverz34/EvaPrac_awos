@@ -90,8 +90,8 @@ SELECT
     nombre_alumno,
     correo,
     licenciatura,
-    --ROUND(promedio_general, 2) AS current_avg,
-    --ROUND(asistencia, 2) AS attendance_pct,
+    ROUND(promedio_general, 2) AS current_avg,
+    ROUND(asistencia, 2) AS attendance_pct,
     CASE 
         WHEN promedio_general < 6.0 AND asistencia < 75 THEN 'CRITICO: Académico y Asistencia'
         WHEN promedio_general < 6.0 THEN 'Riesgo Académico'
